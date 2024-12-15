@@ -11,7 +11,7 @@ import (
 // the headers of an http request
 // example:
 //
-//	Authorization: ApiKey {insert api key
+//	Authorization: ApiKey {insert api key}
 func GetAPIKey(headers http.Header) (string, error) {
 	val := headers.Get("Authorization")
 	if val == "" {
