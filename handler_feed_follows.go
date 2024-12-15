@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	_ "github.com/google/uuid"
 	"github.com/oguzcoll/rssagg/internal/database"
@@ -32,4 +33,28 @@ func (apiCfg *apiConfig) HandlerCreateFeedFollow(w http.ResponseWriter, r *http.
 		respondWithError(w, 500, fmt.Sprintf("Cannot create feed follow: %s", err))
 	}
 	respondWithJson(w, 201, databaseFeedFollowToFeedFollow(feedFollow))
+}
+
+func (apiCfg *apiConfig) HandlerGetFeedFollows(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollows, err := apiCfg.DB.GetFeedFollows(r.Context(), user.ID)
+	if err != nil {
+		respondWithError(w, 500, fmt.Sprintf("Cannot create feed follow: %s", err))
+	}
+	respondWithJson(w, 201, databaseFeedFollowsToFeedFollows(feedFollows))
+}
+
+func (apiCfg *apiConfig) HandlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
+	feedFollowIDString := chi.URLParam(r, "feedFollowID")
+	feedFollowID, err := uuid.Parse(feedFollowIDString)
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Could not parse feed follow id: %v", err))
+	}
+	err = apiCfg.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+		ID:     feedFollowID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Could not delete feed follow: %v", err))
+	}
+	respondWithJson(w, 200, struct{}{})
 }
